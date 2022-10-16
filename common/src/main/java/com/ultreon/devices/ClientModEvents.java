@@ -1,8 +1,8 @@
 package com.ultreon.devices;
 
-import com.ultreon.devices.block.entity.renderer.*;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.ultreon.devices.api.ApplicationManager;
+import com.ultreon.devices.block.entity.renderer.*;
 import com.ultreon.devices.core.Laptop;
 import com.ultreon.devices.init.DeviceBlockEntities;
 import com.ultreon.devices.init.DeviceBlocks;
@@ -33,7 +33,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
@@ -50,6 +49,7 @@ public class ClientModEvents {
             Laptop.addWallpaper(new ResourceLocation("devices:textures/gui/developer_wallpaper.png"));
         } else {
             LOGGER.info(SETUP, "Adding default wallpapers.");
+            Laptop.addWallpaper(new ResourceLocation("devices:textures/gui/wallpapers/default.png"));
             Laptop.addWallpaper(new ResourceLocation("devices:textures/gui/laptop_wallpaper_1.png"));
             Laptop.addWallpaper(new ResourceLocation("devices:textures/gui/laptop_wallpaper_2.png"));
             Laptop.addWallpaper(new ResourceLocation("devices:textures/gui/laptop_wallpaper_3.png"));
@@ -57,6 +57,10 @@ public class ClientModEvents {
             Laptop.addWallpaper(new ResourceLocation("devices:textures/gui/laptop_wallpaper_5.png"));
             Laptop.addWallpaper(new ResourceLocation("devices:textures/gui/laptop_wallpaper_6.png"));
             Laptop.addWallpaper(new ResourceLocation("devices:textures/gui/laptop_wallpaper_7.png"));
+            Laptop.addWallpaper(new ResourceLocation("devices:textures/gui/laptop_wallpaper_8.png"));
+        }
+        for(int i = 1; i <= 17; i++) {
+            Laptop.addWallpaper(new ResourceLocation(String.format("devices:textures/gui/wallpapers/wallpaper_%d.jpg", i)));
         }
 
 

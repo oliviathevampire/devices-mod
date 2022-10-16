@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.ultreon.devices.Devices;
 import com.ultreon.devices.api.TrayItemAdder;
 import com.ultreon.devices.api.app.Application;
+import com.ultreon.devices.api.app.Icons;
 import com.ultreon.devices.api.event.LaptopEvent;
 import com.ultreon.devices.api.utils.RenderUtil;
 import com.ultreon.devices.core.network.TrayItemWifi;
@@ -45,7 +46,54 @@ public class TaskBar {
         this.trayItems.add(new FileBrowserApp.FileBrowserTrayItem());
         this.trayItems.add(new SettingsApp.SettingsTrayItem());
         this.trayItems.add(new AppStore.StoreTrayItem());
+        TrayItem visibility = new TrayItem(Icons.VISIBILITY_ON);
+        visibility.setClickListener((mouseX, mouseY, mouseButton) -> {
+            if (mouseButton == 0) {
+                if (visibility.getIcon().equals(Icons.VISIBILITY_ON)) {
+                    visibility.setIcon(Icons.VISIBILITY_OFF);
+                } else {
+                    visibility.setIcon(Icons.VISIBILITY_ON);
+                }
+            }
+        });
+        this.trayItems.add(visibility);
+        this.trayItems.add(new TrayItem(Icons.MAP));
+        TrayItem microphone = new TrayItem(Icons.MICROPHONE);
+        microphone.setClickListener((mouseX, mouseY, mouseButton) -> {
+            if (mouseButton == 0) {
+                if (microphone.getIcon().equals(Icons.MICROPHONE)) {
+                    microphone.setIcon(Icons.MICROPHONE_MUTE);
+                } else {
+                    microphone.setIcon(Icons.MICROPHONE);
+                }
+            }
+        });
+        this.trayItems.add(microphone);
+        TrayItem headphones = new TrayItem(Icons.HEADPHONES);
+        headphones.setClickListener((mouseX, mouseY, mouseButton) -> {
+            if (mouseButton == 0) {
+                if (headphones.getIcon().equals(Icons.HEADPHONES)) {
+                    headphones.setIcon(Icons.HEADPHONES_MUTE);
+                } else {
+                    headphones.setIcon(Icons.HEADPHONES);
+                }
+            }
+        });
+        this.trayItems.add(headphones);
+        this.trayItems.add(new TrayItem(Icons.CLOUD_FULL));
         this.trayItems.add(new TrayItemWifi());
+        TrayItem volume = new TrayItem(Icons.VOLUME_ON);
+        volume.setClickListener((mouseX, mouseY, mouseButton) -> {
+            if (mouseButton == 0) {
+                if (volume.getIcon().equals(Icons.VOLUME_ON)) {
+                    volume.setIcon(Icons.VOLUME_OFF);
+                } else {
+                    volume.setIcon(Icons.VOLUME_ON);
+                }
+            }
+        });
+        this.trayItems.add(volume);
+        this.trayItems.add(new TrayItem(Icons.BATTERY_FULL));
 
         TrayItemAdder trayItemAdder = new TrayItemAdder(this.trayItems);
         LaptopEvent.SETUP_TRAY_ITEMS.invoker().setupTrayItems(laptop, trayItemAdder);

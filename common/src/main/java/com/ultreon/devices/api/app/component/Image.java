@@ -119,6 +119,9 @@ public class Image extends Component {
     private int borderColor = Color.BLACK.getRGB();
     private int borderThickness = 0;
 
+    public boolean shouldUseColorAsBackground = false;
+    public int color;
+
     public Image(int left, int top, int width, int height) {
         super(left, top);
         this.componentWidth = width;
@@ -256,39 +259,43 @@ public class Image extends Component {
 
             RenderSystem.setShaderColor(tint.get().r/255f, tint.get().g/255f, tint.get().b/255f, alpha);
 
-            if (image != null && image.textureId != -1) {
-                image.restore();
-
-                RenderSystem.setShaderColor(tint.get().r/255f, tint.get().g/255f, tint.get().b/255f, alpha);
-                RenderSystem.enableBlend();
-                RenderSystem.setShaderTexture(0, image.textureId);
-
-                if (/*hasBorder*/true) {
-                    if (drawFull) {
-                        //System.out.println("Rendering image");
-                        RenderUtil.drawRectWithTexture(pose, x + borderThickness, y + borderThickness, 0, imageU, imageV, componentWidth - borderThickness * 2, componentHeight - borderThickness * 2, 256, 256);
-                        //GuiComponent.blit(pose, x + borderThickness, y + borderThickness, imageU, imageV, componentWidth - borderThickness * 2, componentHeight - borderThickness * 2, 256, 256);
-                    } else {
-                        //System.out.println("Rendering image");
-                        RenderUtil.drawRectWithTexture(pose, x + borderThickness, y + borderThickness, imageU, imageV, componentWidth - borderThickness * 2, componentHeight - borderThickness * 2, imageWidth, imageHeight, sourceWidth, sourceHeight);
-                        //GuiComponent.blit(pose, x + borderThickness, y + borderThickness, componentWidth - borderThickness * 2, imageU, imageV, componentHeight - borderThickness * 2, sourceWidth, sourceHeight, imageWidth, imageHeight);
-                    }
-                } else {
-                    if (drawFull) {
-                        //System.out.println("Rendering image");
-                        RenderUtil.drawRectWithTexture(pose, x, y, componentWidth, componentHeight, imageU, imageV, 256, 256);
-//                        GuiComponent.blit(pose, x, y, componentWidth, componentHeight, imageU, imageV, 256, 256);
-                    } else {
-                        //System.out.println("Rendering image");
-                        RenderUtil.drawRectWithTexture(pose, x, y, componentWidth, componentHeight, imageU, imageV, imageWidth, imageHeight, sourceWidth, sourceHeight);
-                        //GuiComponent.blit(pose, x, y, componentWidth, componentHeight, imageU, imageV, sourceWidth, sourceHeight, imageWidth, imageHeight);
-                    }
-                }
+            if (shouldUseColorAsBackground) {
+                fill(pose, x, y, x + componentWidth, y + componentHeight, color);
             } else {
-                if (/*hasBorder*/true) {
-                    fill(pose, x + borderThickness, y + borderThickness, x + componentWidth - borderThickness, y + componentHeight - borderThickness, Color.LIGHT_GRAY.getRGB());
+                if (image != null && image.textureId != -1) {
+                    image.restore();
+
+                    RenderSystem.setShaderColor(tint.get().r/255f, tint.get().g/255f, tint.get().b/255f, alpha);
+                    RenderSystem.enableBlend();
+                    RenderSystem.setShaderTexture(0, image.textureId);
+
+                    if (/*hasBorder*/true) {
+                        if (drawFull) {
+                            //System.out.println("Rendering image");
+                            RenderUtil.drawRectWithTexture(pose, x + borderThickness, y + borderThickness, 0, imageU, imageV, componentWidth - borderThickness * 2, componentHeight - borderThickness * 2, 256, 256);
+                            //GuiComponent.blit(pose, x + borderThickness, y + borderThickness, imageU, imageV, componentWidth - borderThickness * 2, componentHeight - borderThickness * 2, 256, 256);
+                        } else {
+                            //System.out.println("Rendering image");
+                            RenderUtil.drawRectWithTexture(pose, x + borderThickness, y + borderThickness, imageU, imageV, componentWidth - borderThickness * 2, componentHeight - borderThickness * 2, imageWidth, imageHeight, sourceWidth, sourceHeight);
+                            //GuiComponent.blit(pose, x + borderThickness, y + borderThickness, componentWidth - borderThickness * 2, imageU, imageV, componentHeight - borderThickness * 2, sourceWidth, sourceHeight, imageWidth, imageHeight);
+                        }
+                    } else {
+                        if (drawFull) {
+                            //System.out.println("Rendering image");
+                            RenderUtil.drawRectWithTexture(pose, x, y, componentWidth, componentHeight, imageU, imageV, 256, 256);
+//                        GuiComponent.blit(pose, x, y, componentWidth, componentHeight, imageU, imageV, 256, 256);
+                        } else {
+                            //System.out.println("Rendering image");
+                            RenderUtil.drawRectWithTexture(pose, x, y, componentWidth, componentHeight, imageU, imageV, imageWidth, imageHeight, sourceWidth, sourceHeight);
+                            //GuiComponent.blit(pose, x, y, componentWidth, componentHeight, imageU, imageV, sourceWidth, sourceHeight, imageWidth, imageHeight);
+                        }
+                    }
                 } else {
-                    fill(pose, x, y, x + componentWidth, y + componentHeight, Color.LIGHT_GRAY.getRGB());
+                    if (/*hasBorder*/true) {
+                        fill(pose, x + borderThickness, y + borderThickness, x + componentWidth - borderThickness, y + componentHeight - borderThickness, Color.LIGHT_GRAY.getRGB());
+                    } else {
+                        fill(pose, x, y, x + componentWidth, y + componentHeight, Color.LIGHT_GRAY.getRGB());
+                    }
                 }
             }
             RenderSystem.setShaderColor(1f, 1f, 1f, alpha);
@@ -378,6 +385,14 @@ public class Image extends Component {
 
     public void setDrawFull(boolean drawFull) {
         this.drawFull = drawFull;
+    }
+
+    public void setShouldUseColorAsBackground(boolean shouldUseColorAsBackground) {
+        this.shouldUseColorAsBackground = shouldUseColorAsBackground;
+    }
+
+    public void setColor(int color) {
+        this.color = color;
     }
 
     /**

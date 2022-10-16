@@ -5,7 +5,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.jab125.classloader.api.ClassLoaderApi;
 import com.ultreon.devices.api.ApplicationManager;
 import com.ultreon.devices.api.app.Application;
 import com.ultreon.devices.api.print.IPrint;
@@ -40,7 +39,6 @@ import com.ultreon.devices.programs.gitweb.GitWebApp;
 import com.ultreon.devices.programs.snake.SnakeApp;
 import com.ultreon.devices.programs.system.*;
 import com.ultreon.devices.programs.system.task.*;
-import com.ultreon.devices.util.BlockEntityUtil;
 import com.ultreon.devices.util.SiteRegistration;
 import com.ultreon.ultranlang.*;
 import com.ultreon.ultranlang.ast.Program;
@@ -271,6 +269,9 @@ public class Devices {
         ApplicationManager.registerApplication(new ResourceLocation(Reference.MOD_ID, "pixel_painter"), PixelPainterApp::new);
         ApplicationManager.registerApplication(new ResourceLocation(Reference.MOD_ID, "ender_mail"), EmailApp::new);
         ApplicationManager.registerApplication(new ResourceLocation(Reference.MOD_ID, "app_store"), AppStore::new);
+        ApplicationManager.registerApplication(new ResourceLocation(Reference.MOD_ID, "test_app"), TestApp::new);
+        ApplicationManager.registerApplication(new ResourceLocation(Reference.MOD_ID, "text_area"), TextAreaApp::new);
+        ApplicationManager.registerApplication(new ResourceLocation(Reference.MOD_ID, "icons"), IconsApp::new);
 
         ApplicationManager.registerApplication(new ResourceLocation(Reference.MOD_ID, "boat_racers"), BoatRacersApp::new);
         ApplicationManager.registerApplication(new ResourceLocation(Reference.MOD_ID, "mine_bay"), MineBayApp::new);

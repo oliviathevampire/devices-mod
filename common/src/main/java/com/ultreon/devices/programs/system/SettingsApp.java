@@ -78,16 +78,16 @@ public class SettingsApp extends SystemApp {
     private Menu addMainLayout() {
         Menu layoutMain = new Menu("Home");
 
-        Button buttonColorScheme = new Button(5, 26, "Personalise", Icons.EDIT);
-        buttonColorScheme.setSize(90, 20);
-        buttonColorScheme.setToolTip("Personalise", "Change the wallpaper, UI colors, and more!");
-        buttonColorScheme.setClickListener((mouseX, mouseY, mouseButton) ->
+        Button buttonPersonalise = new Button(5, 26, "Personalise", Icons.EDIT);
+        buttonPersonalise.setSize(90, 20);
+        buttonPersonalise.setToolTip("Personalise", "Change the wallpaper, UI colors, and more!");
+        buttonPersonalise.setClickListener((mouseX, mouseY, mouseButton) ->
         {
             if (mouseButton == 0) {
                 showMenu(layoutPersonalise);
             }
         });
-        layoutMain.addComponent(buttonColorScheme);
+        layoutMain.addComponent(buttonPersonalise);
 
         layoutGeneral = new Menu("General");
         layoutGeneral.addComponent(backBtn);
@@ -264,6 +264,18 @@ public class SettingsApp extends SystemApp {
         });
         resetWallpaperBtn.top = wallpaperLayout.height - resetWallpaperBtn.getHeight() - 5;
         wallpaperLayout.addComponent(resetWallpaperBtn);
+
+        // Use color as wallpaper button.
+        Button useColorAsWallpaperBtn = new Button(6, 120, "Use Color As Wallpaper");
+        useColorAsWallpaperBtn.setClickListener((mouseX, mouseY, mouseButton) -> {
+            if (mouseButton == 0) {
+                nextWallpaperBtn.setEnabled(false);
+                prevWallpaperBtn.setEnabled(false);
+                getLaptop().getSettings().useColorAsWallpaper();
+            }
+        });
+        useColorAsWallpaperBtn.top = wallpaperLayout.height - useColorAsWallpaperBtn.getHeight() - 5;
+        wallpaperLayout.addComponent(useColorAsWallpaperBtn);
 
         // Add back button.
         wallpaperLayout.addComponent(backBtn);

@@ -34,7 +34,6 @@ dependencies {
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
 
-
     forgeRuntimeLibrary "org.jetbrains.kotlin:kotlin-stdlib:1.7.10"
     forgeRuntimeLibrary "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.10"
     forgeRuntimeLibrary "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.7.10"

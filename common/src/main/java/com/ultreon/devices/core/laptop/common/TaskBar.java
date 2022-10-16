@@ -3,36 +3,20 @@ package com.ultreon.devices.core.laptop.common;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.ultreon.devices.Devices;
-import com.ultreon.devices.api.TrayItemAdder;
-import com.ultreon.devices.api.app.Application;
-import com.ultreon.devices.api.event.LaptopEvent;
-import com.ultreon.devices.api.utils.RenderUtil;
 import com.ultreon.devices.core.laptop.client.ClientLaptop;
-import com.ultreon.devices.core.network.TrayItemWifi;
-import com.ultreon.devices.object.AppInfo;
-import com.ultreon.devices.object.TrayItem;
-import com.ultreon.devices.programs.system.AppStore;
-import com.ultreon.devices.programs.system.FileBrowserApp;
-import com.ultreon.devices.programs.system.SettingsApp;
-import com.ultreon.devices.programs.system.SystemApp;
 import com.ultreon.devices.programs.system.object.ColorScheme;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiComponent;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Predicate;
 
 public class TaskBar {
     public static final ResourceLocation APP_BAR_GUI = new ResourceLocation("devices:textures/gui/application_bar.png");
     public static final int BAR_HEIGHT = 18;
-    private static final int APPS_DISPLAYED = Devices.DEVELOPER_MODE ? 18 : 10;
+    private static final int APPS_DISPLAYED = Devices.DEVELOPER_MODE ? BAR_HEIGHT : 10;
     private final ClientLaptop laptop;
 
     private final int offset = 0;
@@ -70,9 +54,9 @@ public class TaskBar {
         RenderSystem.setShaderColor(bgColor.getRed() / 255f, bgColor.getGreen() / 255f, bgColor.getBlue() / 255f, 1f);
 
         int trayItemsWidth = /*trayItems.size()*/0 * 14;
-        GuiComponent.blit(pose, x, y, 1, 18, 0, 0, 1, 18, 256, 256);
-        GuiComponent.blit(pose, x + 1, y, ClientLaptop.SCREEN_WIDTH - 36 - trayItemsWidth, 18, 1, 0, 1, 18, 256, 256);
-        GuiComponent.blit(pose, x + ClientLaptop.SCREEN_WIDTH - 35 - trayItemsWidth, y, 35 + trayItemsWidth, 18, 2, 0, 1, 18, 256, 256);
+        GuiComponent.blit(pose, x, y, 1, BAR_HEIGHT, 0, 0, 1, BAR_HEIGHT, 256, 256);
+        GuiComponent.blit(pose, x + 1, y, ClientLaptop.SCREEN_WIDTH - 36 - trayItemsWidth, BAR_HEIGHT, 1, 0, 1, BAR_HEIGHT, 256, 256);
+        GuiComponent.blit(pose, x + ClientLaptop.SCREEN_WIDTH - 35 - trayItemsWidth, y, 35 + trayItemsWidth, BAR_HEIGHT, 2, 0, 1, BAR_HEIGHT, 256, 256);
 
         RenderSystem.disableBlend();
 
