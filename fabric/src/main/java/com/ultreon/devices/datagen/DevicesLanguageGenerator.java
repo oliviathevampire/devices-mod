@@ -119,25 +119,7 @@ public class DevicesLanguageGenerator extends FabricLanguageProvider {
     }
 
     private void createTranslationsForDutch(TranslationBuilder translationBuilder) { // TODO: @Qboi123
-        DeviceItems.LAPTOPS.getMap().forEach((dye, item) -> {
-            translationBuilder.add(item.get().getDescriptionId(), get(dye) + " Laptop");
-        });
-
-        DeviceItems.PRINTERS.getMap().forEach((dye, item) -> {
-            translationBuilder.add(item.get().getDescriptionId(), get(dye) + " Printer");
-        });
-
-        DeviceItems.FLASH_DRIVE.getMap().forEach((dye, item) -> {
-            translationBuilder.add(item.get().getDescriptionId(), get(dye) + " Flash Drive");
-        });
-
-        DeviceItems.ROUTERS.getMap().forEach((dye, item) -> {
-            translationBuilder.add(item.get().getDescriptionId(), get(dye) + " Router");
-        });
-
-        DeviceItems.OFFICE_CHAIRS.getMap().forEach((dye, item) -> {
-            translationBuilder.add(item.get().getDescriptionId(), get(dye) + " Office Chair");
-        });
+        createTranslationsFromTemplate(translationBuilder, "nl_nl");
     }
 
     private void createTranslationsForEnglish(TranslationBuilder translationBuilder) {
