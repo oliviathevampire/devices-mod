@@ -12,10 +12,10 @@ repositories {
 architectury {
     minecraft = rootProject.minecraft_version
 }
-version = "${mod_version}-${System.getenv("GITHUB_BUILD_NUMBER") == null ? "local" : System.getenv("GITHUB_BUILD_NUMBER")}"
+version = "${mod_version}"//-${System.getenv("GITHUB_BUILD_NUMBER") == null ? "local" : System.getenv("GITHUB_BUILD_NUMBER")}"
 
 Object getIngame_version() {
-    return "${mod_version}+${System.getenv("GITHUB_BUILD_NUMBER") == null ? "local" : System.getenv("GITHUB_BUILD_NUMBER")}"
+    return "${mod_version}"//+${System.getenv("GITHUB_BUILD_NUMBER") == null ? "local" : System.getenv("GITHUB_BUILD_NUMBER")}"
 }
 
 Object getModDescription() {
