@@ -64,6 +64,40 @@ public class DevicesModelGenerator extends FabricModelProvider {
             blockStateModelGenerator.delegateItemModel(block.get(), ModelLocationUtils.getModelLocation(block.get(), "_full"));
         });
 
+        DeviceBlocks.ROUTERS.getMap().forEach((dye, block) -> {
+            blockStateModelGenerator.modelOutput.accept(ModelLocationUtils.getModelLocation(block.get()), () -> new Gson().fromJson(String.format(routerPain(), dye.getName()), JsonElement.class));
+            //blockStateModelGenerator.modelOutput.accept(ModelLocationUtils.getModelLocation(block.get()), () -> new Gson().fromJson(String.format(laptopPain(), dye.getName()), JsonElement.class));
+            blockStateModelGenerator.blockStateOutput.accept(new BlockStateGenerator() {
+                @Override
+                public Block getBlock() {
+                    return block.get();
+                }
+
+                @Override
+                public JsonElement get() {
+                    return new Gson().fromJson(String.format(routerStatePain(), dye.getName()), JsonElement.class);
+                }
+            });
+            blockStateModelGenerator.delegateItemModel(block.get(), ModelLocationUtils.getModelLocation(block.get()));
+        });
+
+        DeviceBlocks.PRINTERS.getMap().forEach((dye, block) -> {
+            blockStateModelGenerator.modelOutput.accept(ModelLocationUtils.getModelLocation(block.get()), () -> new Gson().fromJson(String.format(printerPain(), dye.getName()), JsonElement.class));
+            //blockStateModelGenerator.modelOutput.accept(ModelLocationUtils.getModelLocation(block.get()), () -> new Gson().fromJson(String.format(laptopPain(), dye.getName()), JsonElement.class));
+            blockStateModelGenerator.blockStateOutput.accept(new BlockStateGenerator() {
+                @Override
+                public Block getBlock() {
+                    return block.get();
+                }
+
+                @Override
+                public JsonElement get() {
+                    return new Gson().fromJson(String.format(printerStatePain(), dye.getName()), JsonElement.class);
+                }
+            });
+            blockStateModelGenerator.delegateItemModel(block.get(), ModelLocationUtils.getModelLocation(block.get()));
+        });
+
         //new BlockStateGenerator() {
         //                @Override
         //                public Block getBlock() {
@@ -75,6 +109,42 @@ public class DevicesModelGenerator extends FabricModelProvider {
         //                    return new Gson().fromJson(String.format(laptopPain(), dye.getName()), JsonElement.class);
         //                }
         //            }
+    }
+
+    private String printerPain() {
+        try {
+            FileInputStream d = new FileInputStream(dataGenerator.getModContainer().findPath("printer/printerpain.txt").get().toFile());
+            return IOUtils.toString(d, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private String printerStatePain() {
+        try {
+            FileInputStream d = new FileInputStream(dataGenerator.getModContainer().findPath("printer/printerstatepain.txt").get().toFile());
+            return IOUtils.toString(d, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private String routerPain() {
+        try {
+            FileInputStream d = new FileInputStream(dataGenerator.getModContainer().findPath("router/routerpain.txt").get().toFile());
+            return IOUtils.toString(d, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private String routerStatePain() {
+        try {
+            FileInputStream d = new FileInputStream(dataGenerator.getModContainer().findPath("router/routerstatepain.txt").get().toFile());
+            return IOUtils.toString(d, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private String laptopPain() {
