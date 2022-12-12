@@ -135,7 +135,9 @@ components.java {
 publishing {
     publications {
         mavenForge(MavenPublication) {
-            artifactId = rootProject.archives_base_name + "-" + project.name
+            System.out.println(artifactId)
+            artifactId = rootProject.archivesBaseName + "-forge"
+            //artifactId = rootProject.archivesBaseName + "-forge" + //project.name
             from components.java
         }
     }
@@ -144,4 +146,6 @@ publishing {
     repositories {
         // Add repositories to publish to here.
     }
+    rootProject.setupRepositories(repositories)
 }
+
