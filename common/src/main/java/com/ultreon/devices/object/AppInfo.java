@@ -244,7 +244,7 @@ public class AppInfo {
 
     public void reload() {
         resetInfo();
-
+        if (Minecraft.getInstance().getResourceManager() == null) return;
         // TODO "Check if the resource manager can be used on client side."
         Resource resource = Minecraft.getInstance().getResourceManager().getResource(new ResourceLocation(APP_ID.getNamespace(), "/apps/" + APP_ID.getPath() + ".json")).orElse(null);
 

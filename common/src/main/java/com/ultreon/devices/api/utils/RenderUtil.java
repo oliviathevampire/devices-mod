@@ -36,7 +36,7 @@ public class RenderUtil {
     public static void drawIcon(PoseStack pose, double x, double y, AppInfo info, int width, int height) {
         RenderSystem.setShaderTexture(0, Laptop.ICON_TEXTURES);
         //Gui.blit(pose, (int) x, (int) y, width, height, u, v, sourceWidth, sourceHeight, (int) textureWidth, (int) textureHeight);
-        if (info == null) {
+        if (info == null || (info.getIcon().getBase().getU() == -1 && info.getIcon().getBase().getV() == -1)) {
             drawRectWithTexture(pose, x, y, 0, 0, width, height, 14, 14, 224, 224);
             return;
         }
