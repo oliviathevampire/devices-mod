@@ -1,7 +1,6 @@
 package com.ultreon.devices;
 
 import com.google.common.base.Suppliers;
-import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -26,20 +25,28 @@ import com.ultreon.devices.network.PacketHandler;
 import com.ultreon.devices.network.task.SyncApplicationPacket;
 import com.ultreon.devices.network.task.SyncConfigPacket;
 import com.ultreon.devices.object.AppInfo;
-import com.ultreon.devices.programs.IconsApp;
-import com.ultreon.devices.programs.PixelPainterApp;
-import com.ultreon.devices.programs.TestApp;
+import com.ultreon.devices.programs.*;
+import com.ultreon.devices.programs.auction.MineBayApp;
 import com.ultreon.devices.programs.auction.task.TaskAddAuction;
 import com.ultreon.devices.programs.auction.task.TaskBuyItem;
 import com.ultreon.devices.programs.auction.task.TaskGetAuctions;
 import com.ultreon.devices.programs.debug.TextAreaApp;
+import com.ultreon.devices.programs.email.EmailApp;
 import com.ultreon.devices.programs.email.task.*;
 import com.ultreon.devices.programs.example.ExampleApp;
 import com.ultreon.devices.programs.example.task.TaskNotificationTest;
-import com.ultreon.devices.programs.system.SystemApp;
+import com.ultreon.devices.programs.gitweb.GitWebApp;
+import com.ultreon.devices.programs.snake.SnakeApp;
+import com.ultreon.devices.programs.system.*;
 import com.ultreon.devices.programs.system.task.*;
 import com.ultreon.devices.util.SiteRegistration;
-import com.ultreon.devices.util.Vulnerability;
+import com.ultreon.ultranlang.*;
+import com.ultreon.ultranlang.ast.Program;
+import com.ultreon.ultranlang.error.LexerException;
+import com.ultreon.ultranlang.error.ParserException;
+import com.ultreon.ultranlang.error.SemanticException;
+import com.ultreon.ultranlang.func.NativeCalls;
+import com.ultreon.ultranlang.symbol.BuiltinTypeSymbol;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.client.ClientPlayerEvent;
 import dev.architectury.event.events.common.InteractionEvent;
@@ -56,7 +63,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
@@ -65,7 +71,12 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
@@ -74,7 +85,7 @@ import java.util.regex.Pattern;
 
 public class Devices {
     public static final String MOD_ID = "devices";
-    public static final CreativeModeTab TAB_DEVICE = CreativeTabRegistry.create(Devices.id("devices_mod_tab"), () -> DeviceItems.LAPTOPS.of(DyeColor.RED).get().getDefaultInstance());
+    public static final CreativeModeTab TAB_DEVICE = CreativeTabRegistry.create(id("devices_tab_device"), () -> new ItemStack(DeviceItems.RED_LAPTOP.get()));
     public static final Supplier<Registries> REGISTRIES = Suppliers.memoize(() -> Registries.get(MOD_ID));
     public static final List<SiteRegistration> SITE_REGISTRATIONS = new ProtectedArrayList<>();
     public static final Logger LOGGER = LoggerFactory.getLogger("Devices Mod");
@@ -82,15 +93,8 @@ public class Devices {
     private static final Pattern DEV_PREVIEW_PATTERN = Pattern.compile("\\d+\\.\\d+\\.\\d+-dev\\d+");
     private static final boolean IS_DEV_PREVIEW = DEV_PREVIEW_PATTERN.matcher(Reference.VERSION).matches();
     private static final String GITWEB_REGISTER_URL = "https://ultreon.gitlab.io/gitweb/site_register.json";
-    public static final String VULNERABILITIES_URL = "https://jab125.com/gitweb/vulnerabilities.php";
-    private static final boolean PROTECT_FROM_LAUNCH = false;
-    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private static final SiteRegisterStack SITE_REGISTER_STACK = new SiteRegisterStack();
     static List<AppInfo> allowedApps;
-    private static List<Vulnerability> vulnerabilities;
-    public static List<Vulnerability> getVulnerabilities() {
-        return vulnerabilities;
-    }
     private static MinecraftServer server;
 
     public static void init() {
@@ -98,7 +102,7 @@ public class Devices {
             preInit();
             serverSetup();
         }
-        //     BlockEntityUtil.sendUpdate(null, null, null);
+   //     BlockEntityUtil.sendUpdate(null, null, null);
 
         //LOGGER.info("DIRT BLOCK >> {}", Blocks.DIRT.getRegistryName());
         LOGGER.info("Doing some common setup.");
@@ -113,7 +117,6 @@ public class Devices {
         });
 
         EnvExecutor.runInEnv(Env.CLIENT, () -> Devices::setupSiteRegistrations);
-        EnvExecutor.runInEnv(Env.CLIENT, () -> Devices::checkForVulnerabilities);
 
         setupEvents();
 
@@ -121,10 +124,115 @@ public class Devices {
         if (!ArchitecturyTarget.getCurrentTarget().equals("forge")) {
             loadComplete();
         }
+
+        ultranLang:
+        {
+            var inputFile = new File("main.ulan");
+
+            if (!inputFile.exists()) {
+                LOGGER.error("File not found: {}", inputFile.getAbsolutePath());
+            } else {
+                SpiKt.setShouldLogInternalErrors(false);
+                SpiKt.setShouldLogScope(false);
+                SpiKt.setShouldLogStack(false);
+                SpiKt.setShouldLogTokens(false);
+
+                String text;
+                try {
+                    text = Files.readString(inputFile.toPath(), Charset.defaultCharset());
+                } catch (IOException e) {
+                    LOGGER.error("Failed to read file: {}", inputFile.getAbsolutePath(), e);
+                    break ultranLang;
+                }
+
+                registerNativeFunctions();
+                NativeCalls.INSTANCE.load();
+
+                var lexer = new Lexer(text);
+                Program tree;
+                try {
+                    var parser = new Parser(lexer);
+                    tree = parser.parse();
+                } catch (LexerException | ParserException e) {
+                    if (SpiKt.getShouldLogInternalErrors()) e.printStackTrace();
+                    LOGGER.error("Error parsing file: {}", e.getMessage());
+                    break ultranLang;
+                } catch (RuntimeException e) {
+                    var cause = e.getCause();
+                    while (cause instanceof InvocationTargetException || cause instanceof RuntimeException) {
+                        cause = cause.getCause();
+                    }
+                    if (cause instanceof LexerException) {
+                        if (SpiKt.getShouldLogInternalErrors()) cause.printStackTrace();
+                        LOGGER.error("Error parsing file: {}", cause.getMessage());
+                    } else if (cause instanceof ParserException) {
+                        if (SpiKt.getShouldLogInternalErrors()) cause.printStackTrace();
+                        LOGGER.error("Error parsing file: {}", cause.getMessage());
+                    } else {
+                        throw e;
+                    }
+                    break ultranLang;
+                }
+
+                var semanticAnalyzer = new SemanticAnalyzer();
+
+                try {
+                    semanticAnalyzer.visit(tree);
+                } catch (SemanticException e) {
+                    if (SpiKt.getShouldLogInternalErrors()) e.printStackTrace();
+                    LOGGER.error("Error analyzing file: {}", e.getMessage());
+                    break ultranLang;
+                } catch (RuntimeException e) {
+                    var cause = e.getCause();
+                    while (cause instanceof InvocationTargetException || cause instanceof RuntimeException) {
+                        cause = cause.getCause();
+                    }
+                    if (cause instanceof SemanticException) {
+                        if (SpiKt.getShouldLogInternalErrors()) cause.printStackTrace();
+                        LOGGER.error("Error analyzing file: {}", cause.getMessage());
+                    } else {
+                        throw e;
+                    }
+                    break ultranLang;
+                }
+
+                try {
+                    var interpreter = new Interpreter(tree);
+                    interpreter.interpret();
+                } catch (Exception e) {
+                    if (SpiKt.getShouldLogInternalErrors()) e.printStackTrace();
+                    LOGGER.error("Error interpreting file: {}", e.getMessage());
+                }
+            }
+        }
+    }
+
+    private static void registerNativeFunctions() {
+        HashMap<String, String> params = new HashMap<>();
+        params.put("level", BuiltinTypeSymbol.STRING);
+        params.put("message", BuiltinTypeSymbol.STRING);
+        NativeCalls.INSTANCE.register("log", params, ar -> {
+            Object level = ar.get("level");
+            if (level instanceof String levelName) {
+                Object message = ar.get("message");
+                if (message == null) message = "null";
+
+                switch (levelName.toLowerCase(Locale.ROOT)) {
+                    case "warn" -> LOGGER.warn(message.toString());
+                    case "error" -> LOGGER.error(message.toString());
+                    case "debug" -> LOGGER.debug(message.toString());
+                    case "trace" -> LOGGER.trace(message.toString());
+                    default -> LOGGER.info(message.toString());
+                }
+            } else {
+                throw new IllegalArgumentException("Invalid level of type " + (level == null ? "null" : level.getClass().getName()));
+            }
+            return null;
+        });
     }
 
     public static void preInit() {
-        if (DEVELOPER_MODE && !Platform.isDevelopmentEnvironment() && PROTECT_FROM_LAUNCH) {
+        if (DEVELOPER_MODE && Platform.isDevelopmentEnvironment()) {
             throw new LaunchException();
         }
 
@@ -140,6 +248,7 @@ public class Devices {
         return server;
     }
 
+
     public static void serverSetup() {
         LOGGER.info("Doing some server setup.");
     }
@@ -151,8 +260,24 @@ public class Devices {
 
     private static void registerApplications() {
         // Applications (Both)
+        ApplicationManager.registerApplication(new ResourceLocation(Reference.MOD_ID, "diagnostics"), DiagnosticsApp::new);
+        ApplicationManager.registerApplication(new ResourceLocation(Reference.MOD_ID, "settings"), SettingsApp::new);
+        ApplicationManager.registerApplication(new ResourceLocation(Reference.MOD_ID, "bank"), BankApp::new);
+        ApplicationManager.registerApplication(new ResourceLocation(Reference.MOD_ID, "file_browser"), FileBrowserApp::new);
+        ApplicationManager.registerApplication(new ResourceLocation(Reference.MOD_ID, "gitweb"), GitWebApp::new);
+        ApplicationManager.registerApplication(new ResourceLocation(Reference.MOD_ID, "note_stash"), NoteStashApp::new);
+        ApplicationManager.registerApplication(new ResourceLocation(Reference.MOD_ID, "pixel_painter"), PixelPainterApp::new);
+        ApplicationManager.registerApplication(new ResourceLocation(Reference.MOD_ID, "ender_mail"), EmailApp::new);
+        ApplicationManager.registerApplication(new ResourceLocation(Reference.MOD_ID, "app_store"), AppStore::new);
+        ApplicationManager.registerApplication(new ResourceLocation(Reference.MOD_ID, "test_app"), TestApp::new);
+        ApplicationManager.registerApplication(new ResourceLocation(Reference.MOD_ID, "text_area"), TextAreaApp::new);
+        ApplicationManager.registerApplication(new ResourceLocation(Reference.MOD_ID, "icons"), IconsApp::new);
 
-        registerApplicationEvent();
+        ApplicationManager.registerApplication(new ResourceLocation(Reference.MOD_ID, "boat_racers"), BoatRacersApp::new);
+        ApplicationManager.registerApplication(new ResourceLocation(Reference.MOD_ID, "mine_bay"), MineBayApp::new);
+
+        ApplicationManager.registerApplication(new ResourceLocation(Reference.MOD_ID, "snake"), SnakeApp::new);
+
         // Core
         TaskManager.registerTask(TaskUpdateApplicationData::new);
         TaskManager.registerTask(TaskPrint::new);
@@ -194,20 +319,15 @@ public class Devices {
 
         if (DEVELOPER_MODE) {
             // Applications (Developers)
-            ApplicationManager.registerApplication(new ResourceLocation(Reference.MOD_ID, "example"), () -> ExampleApp::new, false);
-            ApplicationManager.registerApplication(new ResourceLocation(Reference.MOD_ID, "icons"), () -> IconsApp::new, false);
-            ApplicationManager.registerApplication(new ResourceLocation(Reference.MOD_ID, "text_area"), () -> TextAreaApp::new, false);
-            ApplicationManager.registerApplication(new ResourceLocation(Reference.MOD_ID, "test"), () -> TestApp::new, false);
+            ApplicationManager.registerApplication(new ResourceLocation(Reference.MOD_ID, "example"), ExampleApp::new);
+            ApplicationManager.registerApplication(new ResourceLocation(Reference.MOD_ID, "icons"), IconsApp::new);
+            ApplicationManager.registerApplication(new ResourceLocation(Reference.MOD_ID, "text_area"), TextAreaApp::new);
+            ApplicationManager.registerApplication(new ResourceLocation(Reference.MOD_ID, "test"), TestApp::new);
 
             TaskManager.registerTask(TaskNotificationTest::new);
         }
 
         EnvExecutor.runInEnv(Env.CLIENT, () -> () -> PrintingManager.registerPrint(new ResourceLocation(Reference.MOD_ID, "picture"), PixelPainterApp.PicturePrint.class));
-    }
-
-    @ExpectPlatform
-    private static void registerApplicationEvent() {
-        throw new AssertionError();
     }
 
     @ExpectPlatform
@@ -219,24 +339,8 @@ public class Devices {
         Devices.allowedApps = allowedApps;
     }
 
-    public interface ApplicationSupplier {
-
-        /**
-         * Gets a result.
-         *
-         * @return a result
-         */
-        Supplier<Application> get();
-
-        boolean isSystem();
-    }
-
-    /**
-     * @deprecated do not call
-     */
-    @Deprecated
     @Nullable
-    public static Application registerApplication(ResourceLocation identifier, ApplicationSupplier app) {
+    public static Application registerApplication(ResourceLocation identifier, Supplier<Application> app) {
         if ("minecraft".equals(identifier.getNamespace())) {
             throw new IllegalArgumentException("Identifier cannot be \"minecraft\"!");
         }
@@ -245,7 +349,8 @@ public class Devices {
             allowedApps = new ArrayList<>();
         }
 
-        if (app.isSystem()) {
+        Application appl = app.get();
+        if (app instanceof SystemApp) {
             allowedApps.add(new AppInfo(identifier, true));
         } else {
             allowedApps.add(new AppInfo(identifier, false));
@@ -253,7 +358,6 @@ public class Devices {
 
         AtomicReference<Application> application = new AtomicReference<>(null);
         EnvExecutor.runInEnv(Env.CLIENT, () -> () -> {
-            Application appl = app.get().get();
             List<Application> apps = getAPPLICATIONS(); /*ObfuscationReflectionHelper.getPrivateValue(Laptop.class, null, "APPLICATIONS");*/
             assert apps != null;
             apps.add(appl);
@@ -389,22 +493,6 @@ public class Devices {
         setupSiteRegistration(GITWEB_REGISTER_URL);
     }
 
-    private static void checkForVulnerabilities() {
-        OnlineRequest.getInstance().make(VULNERABILITIES_URL, ((success, response) -> {
-            if (!success) {
-                System.out.println("Could not access vulnerabilities!");
-                vulnerabilities = ImmutableList.of();
-                return;
-            }
-
-            JsonArray array = JsonParser.parseString(response).getAsJsonArray();
-            vulnerabilities = Vulnerability.parseArray(array);
-            System.out.println(array);
-            System.out.println(Arrays.toString(Reference.getVerInfo()));
-            System.out.println("Vulnerabilities:" + vulnerabilities);
-        }));
-    }
-
     private static void setupSiteRegistration(String url) {
         SITE_REGISTER_STACK.push();
 
@@ -465,7 +553,6 @@ public class Devices {
                 }
             } else {
                 LOGGER.error("Error occurred when loading site registrations at: " + url);
-                return;
             }
             SITE_REGISTER_STACK.pop();
         });
@@ -560,7 +647,6 @@ public class Devices {
         }
     }
 
-    @SuppressWarnings("UnusedReturnValue")
     private static class SiteRegisterStack extends Stack<Object> {
         public Object push() {
             return super.push(new Object());

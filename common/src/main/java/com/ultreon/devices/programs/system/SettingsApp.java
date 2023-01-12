@@ -1,17 +1,13 @@
 package com.ultreon.devices.programs.system;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.ultreon.devices.Devices;
-import com.ultreon.devices.Reference;
 import com.ultreon.devices.api.ApplicationManager;
 import com.ultreon.devices.api.app.Dialog;
 import com.ultreon.devices.api.app.Icons;
 import com.ultreon.devices.api.app.Layout;
-import com.ultreon.devices.api.app.ScrollableLayout;
 import com.ultreon.devices.api.app.component.Button;
 import com.ultreon.devices.api.app.component.CheckBox;
 import com.ultreon.devices.api.app.component.ComboBox;
-import com.ultreon.devices.api.app.component.Text;
 import com.ultreon.devices.api.app.renderer.ItemRenderer;
 import com.ultreon.devices.core.Laptop;
 import com.ultreon.devices.core.Settings;
@@ -26,7 +22,6 @@ import net.minecraft.nbt.CompoundTag;
 
 import javax.annotation.Nullable;
 import java.awt.*;
-import java.text.MessageFormat;
 import java.util.Objects;
 import java.util.Stack;
 
@@ -83,47 +78,16 @@ public class SettingsApp extends SystemApp {
     private Menu addMainLayout() {
         Menu layoutMain = new Menu("Home");
 
-        Button aboutButton = new Button(5, 26, "About", Icons.INFO);
-        aboutButton.setSize(90, 20);
-        aboutButton.setClickListener((__, ___, ____) -> {
-            var qq = new Menu("About");
-            qq.addComponent(backBtn);
-            var l = new ScrollableLayout(layoutMain.width, layoutMain.height, 124);
-            l.top = 26;
-            l = ScrollableLayout.create(0, 26, layoutMain.width, 124, MessageFormat.format("""
-                    Version: {0} ({1})
-                    """
-//                    Model: CD1
-//                    STORAGE: 32MB
-//                    RAM: 512KB
-//
-//                    Credits:
-//                    - MrCrayfish (https://mrcrayfish.com/)
-//                    - Qboi123
-//                    - Jab125
-//                    - lizterzapzap
-//                    - MrBean6000
-//                    - them
-//                    - alfff
-//                    - 6
-//                    - あ
-/*                    """*/, Reference.getVerInfo()[0], Reference.getVerInfo()[1]));
-            //l.height = 124;
-            qq.addComponent(l);
-            this.showMenu(qq);
-        });
-        layoutMain.addComponent(aboutButton);
-        //aboutButton.setToolTip("About", "When to call emergency services because you just lost all of your NFTs to a scammer");
-        Button buttonColorScheme = new Button(5, 26+20+4, "Personalise", Icons.EDIT);
-        buttonColorScheme.setSize(90, 20);
-        buttonColorScheme.setToolTip("Personalise", "Change the wallpaper, UI colors, and more!");
-        buttonColorScheme.setClickListener((mouseX, mouseY, mouseButton) ->
+        Button buttonPersonalise = new Button(5, 26, "Personalise", Icons.EDIT);
+        buttonPersonalise.setSize(90, 20);
+        buttonPersonalise.setToolTip("Personalise", "Change the wallpaper, UI colors, and more!");
+        buttonPersonalise.setClickListener((mouseX, mouseY, mouseButton) ->
         {
             if (mouseButton == 0) {
                 showMenu(layoutPersonalise);
             }
         });
-        layoutMain.addComponent(buttonColorScheme);
+        layoutMain.addComponent(buttonPersonalise);
 
         layoutGeneral = new Menu("General");
         layoutGeneral.addComponent(backBtn);
@@ -301,6 +265,18 @@ public class SettingsApp extends SystemApp {
         resetWallpaperBtn.top = wallpaperLayout.height - resetWallpaperBtn.getHeight() - 5;
         wallpaperLayout.addComponent(resetWallpaperBtn);
 
+        // Use color as wallpaper button.
+        Button useColorAsWallpaperBtn = new Button(6, 120, "Use Color As Wallpaper");
+        useColorAsWallpaperBtn.setClickListener((mouseX, mouseY, mouseButton) -> {
+            if (mouseButton == 0) {
+                nextWallpaperBtn.setEnabled(false);
+                prevWallpaperBtn.setEnabled(false);
+                getLaptop().getSettings().useColorAsWallpaper();
+            }
+        });
+        useColorAsWallpaperBtn.top = wallpaperLayout.height - useColorAsWallpaperBtn.getHeight() - 5;
+        wallpaperLayout.addComponent(useColorAsWallpaperBtn);
+
         // Add back button.
         wallpaperLayout.addComponent(backBtn);
 
@@ -324,10 +300,6 @@ public class SettingsApp extends SystemApp {
             openDialog(dialog);
         });
         wallpaperLayout.addComponent(urlWallpaperBtn);
-        var wallpaperText = new Text("Wallpaper", image.left+3, image.top+3, image.componentWidth-6);
-        wallpaperText.setShadow(true);
-        wallpaperText.setTextColor(new Color(getLaptop().getSettings().getColorScheme().getTextColor()));
-        wallpaperLayout.addComponent(wallpaperText);
 
         return wallpaperLayout;
     }
@@ -419,7 +391,7 @@ public class SettingsApp extends SystemApp {
 
         @Override
         public void handleClick(int mouseX, int mouseY, int mouseButton) {
-            AppInfo info = ApplicationManager.getApplication(Devices.id("settings"));
+            AppInfo info = ApplicationManager.getApplication("devices:settings");
             if (info != null) {
                 Laptop.getSystem().openApplication(info);
             }

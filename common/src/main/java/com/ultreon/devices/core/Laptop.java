@@ -166,6 +166,11 @@ public class Laptop extends Screen implements System {
         Laptop.pos = laptop.getBlockPos();
         this.wallpaperLayout = new Layout(SCREEN_WIDTH, SCREEN_HEIGHT);
         this.wallpaper = new com.ultreon.devices.api.app.component.Image(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+        wallpaper.setShouldUseColorAsBackground(this.settings.shouldUseColorAsWallpaper());
+        Color bgColor = new Color(this.getSettings().getColorScheme().getBackgroundColor()).brighter().brighter();
+        float[] hsb = Color.RGBtoHSB(bgColor.getRed(), bgColor.getGreen(), bgColor.getBlue(), null);
+        bgColor = new Color(Color.HSBtoRGB(hsb[0], hsb[1], 1.0F));
+        wallpaper.setColor(bgColor.getRGB());
         if (currentWallpaper.isBuiltIn()) {
             wallpaper.setImage(WALLPAPERS.get(currentWallpaper.location));
         } else {

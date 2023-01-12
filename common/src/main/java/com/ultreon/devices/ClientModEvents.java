@@ -1,15 +1,13 @@
 package com.ultreon.devices;
 
-import com.ultreon.devices.block.entity.renderer.*;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.ultreon.devices.api.ApplicationManager;
+import com.ultreon.devices.block.entity.renderer.*;
 import com.ultreon.devices.core.Laptop;
 import com.ultreon.devices.init.DeviceBlockEntities;
 import com.ultreon.devices.init.DeviceBlocks;
 import com.ultreon.devices.object.AppInfo;
-import dev.architectury.core.item.ArchitecturyBucketItem;
 import dev.architectury.injectables.annotations.ExpectPlatform;
-import dev.architectury.registry.ReloadListenerRegistry;
 import dev.architectury.registry.client.rendering.BlockEntityRendererRegistry;
 import dev.architectury.registry.client.rendering.RenderTypeRegistry;
 import dev.architectury.registry.registries.Registries;
@@ -18,9 +16,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
-import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.level.block.Block;
@@ -37,7 +33,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
@@ -54,6 +49,7 @@ public class ClientModEvents {
             Laptop.addWallpaper(new ResourceLocation("devices:textures/gui/developer_wallpaper.png"));
         } else {
             LOGGER.info(SETUP, "Adding default wallpapers.");
+            Laptop.addWallpaper(new ResourceLocation("devices:textures/gui/wallpapers/default.png"));
             Laptop.addWallpaper(new ResourceLocation("devices:textures/gui/laptop_wallpaper_1.png"));
             Laptop.addWallpaper(new ResourceLocation("devices:textures/gui/laptop_wallpaper_2.png"));
             Laptop.addWallpaper(new ResourceLocation("devices:textures/gui/laptop_wallpaper_3.png"));
@@ -62,8 +58,9 @@ public class ClientModEvents {
             Laptop.addWallpaper(new ResourceLocation("devices:textures/gui/laptop_wallpaper_6.png"));
             Laptop.addWallpaper(new ResourceLocation("devices:textures/gui/laptop_wallpaper_7.png"));
             Laptop.addWallpaper(new ResourceLocation("devices:textures/gui/laptop_wallpaper_8.png"));
-            Laptop.addWallpaper(new ResourceLocation("devices:textures/gui/laptop_wallpaper_9.png"));
-            Laptop.addWallpaper(new ResourceLocation("devices:textures/gui/laptop_wallpaper_10.png"));
+        }
+        for(int i = 1; i <= 17; i++) {
+            Laptop.addWallpaper(new ResourceLocation(String.format("devices:textures/gui/wallpapers/wallpaper_%d.jpg", i)));
         }
 
 
@@ -71,8 +68,7 @@ public class ClientModEvents {
         registerRenderLayers();
         registerRenderers();
         registerLayerDefinitions();
-        //generateIconAtlas();
-        ReloadListenerRegistry.register(PackType.CLIENT_RESOURCES, new ReloaderListener());
+        generateIconAtlas();
     }
 
     public static class ReloaderListener implements PreparableReloadListener {
@@ -86,8 +82,7 @@ public class ClientModEvents {
                     ApplicationManager.getAllApplications().forEach(AppInfo::reload);
                     generateIconAtlas();
                 }
-
-            }, gameExecutor).thenCompose(preparationBarrier::wait);
+            }, gameExecutor);
         }
     }
 
@@ -112,7 +107,7 @@ public class ClientModEvents {
         RenderTypeRegistry.register(RenderType.cutout(), DeviceBlocks.PAPER.get());
     }
 
-    public static void generateIconAtlas() {
+    private static void generateIconAtlas() {
         final int ICON_SIZE = 14;
         var imageWriter = new Object() {
             final BufferedImage atlas = new BufferedImage(ICON_SIZE * 16, ICON_SIZE * 16, BufferedImage.TYPE_INT_ARGB);
@@ -121,11 +116,9 @@ public class ClientModEvents {
             int mode = 0;
 
             public boolean writeImage(AppInfo info, ResourceLocation location) {
-                //String path = "/assets/" + location.getNamespace() + "/" + location.getPath();
+                String path = "/assets/" + location.getNamespace() + "/" + location.getPath();
                 try {
-                    System.out.println(location);
-                    Resource resource = Minecraft.getInstance().getResourceManager().getResource(location).orElse(null);
-                    InputStream input = resource.open();
+                    InputStream input = Devices.class.getResourceAsStream(path);
                     if (input != null) {
                         BufferedImage icon = ImageIO.read(input);
                         if (icon.getWidth() != ICON_SIZE || icon.getHeight() != ICON_SIZE) {
@@ -142,17 +135,15 @@ public class ClientModEvents {
                                 case 2 -> info.getIcon().getOverlay1();
                                 default -> throw new IllegalStateException("Unexpected value: " + mode);
                             };
-                            System.out.println("set glyph" + mode + "to " + iconU + ", " + iconV);
                             glyph.setU(iconU);
                             glyph.setV(iconV);
                         }
                         index++;
                     } else {
-                        Devices.LOGGER.error("Icon for application '" + (info == null ? null : info.getId()) + "' could not be found at '" + resource.sourcePackId() + "'");
+                        Devices.LOGGER.error("Icon for application '" + (info == null ? null : info.getId()) + "' could not be found at '" + path + "'");
                     }
                 } catch (Exception e) {
                     Devices.LOGGER.error("Unable to load icon for " + (info == null ? null : info.getId()));
-                    //e.printStackTrace();
                 }
                 return false;
             }
@@ -175,7 +166,6 @@ public class ClientModEvents {
                     Minecraft.getInstance().submit(() -> {
                         try {
                             Minecraft.getInstance().getTextureManager().register(Laptop.ICON_TEXTURES, new DynamicTexture(NativeImage.read(input)));
-                            System.out.println("registering texture");
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
